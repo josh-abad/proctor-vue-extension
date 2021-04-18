@@ -1,7 +1,4 @@
-interface Activity {
-  url: string;
-  time: string;
-}
+import { Activity } from './types'
 
 const activities: Activity[] = []
 
