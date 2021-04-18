@@ -2,12 +2,17 @@
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",
+    "jsx": "react",
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "lib": [
+      "ES2015",
+      "DOM"
+    ]
   },
   "include": [
     "src/**/*"
