@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "snowpack build --watch",
-    "build": "snowpack build",
+    "dev": "TAILWIND_MODE=watch NODE_ENV=development snowpack build --watch",
+    "build": "TAILWIND_MODE=build NODE_ENV=production snowpack build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ."
   },
@@ -13,6 +13,7 @@
   "author": "Joshua Timothy E. Abad",
   "license": "MIT",
   "devDependencies": {
+    "@jadex/snowpack-plugin-tailwindcss-jit": "^0.2.0",
     "@snowpack/plugin-postcss": "^1.2.2",
     "@snowpack/plugin-typescript": "^1.2.1",
     "@types/chrome": "^0.0.134",

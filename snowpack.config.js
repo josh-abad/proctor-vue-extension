@@ -9,7 +9,8 @@ module.exports = {
   },
   plugins: [
     '@snowpack/plugin-typescript',
-    '@snowpack/plugin-postcss'
+    '@snowpack/plugin-postcss',
+    '@jadex/snowpack-plugin-tailwindcss-jit'
   ],
   packageOptions: {
     /* ... */
