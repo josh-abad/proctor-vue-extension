@@ -19,3 +19,13 @@ export interface EventResponse {
   action: string;
   date: Date;
 }
+
+export interface User {
+  id: string;
+  fullName: string;
+  email: string;
+  verified: string;
+  role: 'student' | 'coordinator' | 'admin';
+  token: string;
+  tracking: boolean;
+}

@@ -10,8 +10,8 @@ const addActivity = (activity: Activity) => {
 chrome.runtime.onInstalled.addListener(() => {
   chrome.tabs.onActivated.addListener(({ tabId }) => {
     chrome.tabs.get(tabId, ({ url }) => {
-      chrome.storage.sync.get(['tracking'], items => {
-        if (items.tracking) {
+      chrome.storage.sync.get(['user'], items => {
+        if (items.user?.tracking) {
           addActivity({
             time: new Date().toLocaleTimeString(),
             url: url?.split('/')[2] || 'new tab'
