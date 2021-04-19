@@ -119,5 +119,5 @@ ReactDOM.render(
   <React.StrictMode>
     <Popup />
   </React.StrictMode>,
-  document.getElementById('root')
+  document.getElementById('popup')
 )
