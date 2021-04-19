@@ -20,7 +20,8 @@ module.exports = {
       current: 'current',
       white: colors.white,
       gray: colors.gray,
-      green: colors.emerald
+      green: colors.emerald,
+      red: colors.rose
     }
   },
   variants: {
