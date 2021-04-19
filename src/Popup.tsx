@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEventHandler }  from 'react'
+import React, { useState, useEffect }  from 'react'
 import ReactDOM from 'react-dom'
 import PopoutButton from '@/components/PopoutButton'
 import LogoutButton from '@/components/LogoutButton'
@@ -74,7 +74,7 @@ const Popup = (): JSX.Element => {
     })
   }
 
-  const handleChange: ChangeEventHandler<HTMLInputElement> = ({ target }) => {
+  const handleChange: React.ChangeEventHandler<HTMLInputElement> = ({ target }) => {
     setTracking(target.checked)
     chrome.storage.sync.set({ tracking: target.checked })
   }
