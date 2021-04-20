@@ -8,6 +8,7 @@ import axios from 'axios'
 import LoginView from '@/components/LoginView'
 import EventItem from '@/components/EventItem'
 import EventList from '@/components/EventList'
+import ErrorMessage from '@/components/ErrorMessage'
 
 const API_URL = 'https://api.proctorvue.live'
 
@@ -140,15 +141,7 @@ const Popup = (): JSX.Element => {
             onEmailChange={e => setEmailInput(e.target.value)}
             onPasswordChange={e => setPasswordInput(e.target.value)}
           />
-          {message &&
-          <div className="flex justify-center w-full pb-5">
-            <div className="px-2 py-1 bg-red-800 border border-red-300 rounded-md bg-opacity-10 border-opacity-10">
-              <span className="text-red-300">
-                {message}
-              </span>
-            </div>
-          </div>
-          }
+          {message && <ErrorMessage message={message} />}
         </>
       }
       {user &&
