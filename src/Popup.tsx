@@ -8,11 +8,11 @@ import axios from 'axios'
 import LoginView from '@/components/LoginView'
 import EventItem from '@/components/EventItem'
 import EventList from '@/components/EventList'
+import ErrorMessage from '@/components/ErrorMessage'
 
 const API_URL = 'https://api.proctorvue.live'
 
 const Popup = (): JSX.Element => {
-  // const [tracking, setTracking] = useState(false)
   const [openExams, setOpenExams] = useState<ExamEvent[]>([])
   const [upcomingExams, setUpcomingExams] = useState<ExamEvent[]>([])
   const [user, setUser] = useState<User | null>(null)
@@ -20,18 +20,9 @@ const Popup = (): JSX.Element => {
   const [passwordInput, setPasswordInput] = useState('')
   const [message, setMessage] = useState('')
 
-  const syncTracking = (trackingOn: boolean) => {
-    if (user) {
-      const updatedTracking = { ...user, tracking: trackingOn }
-      setUser(updatedTracking)
-      chrome.storage.sync.set({ user: updatedTracking })
-    }
-  }
-
   useEffect(() => {
     chrome.storage.sync.get(['user'], items => {
       if (items.user) {
-        console.log(items.user)
         setUser(items.user)
         fetchExamEvents(items.user.id)
       }
@@ -83,7 +74,12 @@ const Popup = (): JSX.Element => {
   }
 
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-    syncTracking(e.target.checked)
+    if (user) {
+      const updatedUser = { ...user, tracking: e.target.checked }
+      chrome.storage.sync.set({ user: updatedUser }, () => {
+        setUser(updatedUser)
+      })
+    }
   }
 
   const handleLogIn: React.MouseEventHandler<HTMLButtonElement> = async (e) => {
@@ -97,10 +93,11 @@ const Popup = (): JSX.Element => {
     try { 
       const { data } = await axios.post<Omit<User, 'tracking'>>(`${API_URL}/login`, credentials)
       const loggedInUser = { ...data, tracking: false }
-      chrome.storage.sync.set({ user: loggedInUser })
-      setUser(loggedInUser)
-      fetchExamEvents(loggedInUser.id)
-      setMessage('')
+      chrome.storage.sync.set({ user: loggedInUser }, () => {
+        setUser(loggedInUser)
+        fetchExamEvents(loggedInUser.id)
+        setMessage('')
+      })
     } catch (error) {
       setMessage('Incorrect email or password.')
     }
@@ -140,15 +137,7 @@ const Popup = (): JSX.Element => {
             onEmailChange={e => setEmailInput(e.target.value)}
             onPasswordChange={e => setPasswordInput(e.target.value)}
           />
-          {message &&
-          <div className="flex justify-center w-full pb-5">
-            <div className="px-2 py-1 bg-red-800 border border-red-300 rounded-md bg-opacity-10 border-opacity-10">
-              <span className="text-red-300">
-                {message}
-              </span>
-            </div>
-          </div>
-          }
+          {message && <ErrorMessage message={message} />}
         </>
       }
       {user &&
