@@ -3,11 +3,15 @@
 
 /** @type {import("snowpack").SnowpackUserConfig } */
 module.exports = {
+  alias: {
+    '@': './src'
+  },
   mount: {
     public: '/',
     src: '/dist'
   },
   plugins: [
+    ['@snowpack/plugin-optimize'],
     '@snowpack/plugin-typescript',
     '@snowpack/plugin-postcss',
     '@jadex/snowpack-plugin-tailwindcss-jit'

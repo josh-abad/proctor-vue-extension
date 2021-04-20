@@ -1,11 +1,11 @@
 {
   "name": "@proctor-vue/extension",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "TAILWIND_MODE=watch NODE_ENV=development snowpack build --watch",
-    "build": "TAILWIND_MODE=build NODE_ENV=production snowpack build",
+    "dev": "NODE_ENV=development snowpack build --watch",
+    "build": "NODE_ENV=production snowpack build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ."
   },
@@ -14,6 +14,7 @@
   "license": "MIT",
   "devDependencies": {
     "@jadex/snowpack-plugin-tailwindcss-jit": "^0.2.0",
+    "@snowpack/plugin-optimize": "^0.2.13",
     "@snowpack/plugin-postcss": "^1.2.2",
     "@snowpack/plugin-typescript": "^1.2.1",
     "@types/chrome": "^0.0.134",

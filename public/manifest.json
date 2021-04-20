@@ -1,7 +1,7 @@
 {
   "name": "Proctor Vue",
   "description": "A browser extension for Proctor Vue",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "manifest_version": 2,
   "background": {
     "scripts": ["dist/background.js"]
@@ -24,5 +24,6 @@
     "32": "/images/icon32.png",
     "48": "/images/icon48.png",
     "128": "/images/icon128.png"
-  }
+  },
+  "options_page": "options.html"
 }
