@@ -120,8 +120,7 @@ const Popup = (): JSX.Element => {
           <LogoutButton onClick={handleLogOut} />
         </span>
       </div>
-      {user ?
-        <div className="p-2">
+        <div className="p-2 space-y-3">
           <EventList header="Exams for Today">
             {renderExamsEvents(openExams, false)}
           </EventList>
