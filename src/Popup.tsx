@@ -24,6 +24,9 @@ const Popup = (): JSX.Element => {
       if (items.user) {
         setUser(items.user)
         API.fetchExamEvents(items.user.id).then(response => {
+          chrome.browserAction.setBadgeText({
+            text: response.openExams.length.toString()
+          })
           setOpenExams(response.openExams)
           setUpcomingExams(response.upcomingExams)
         })
@@ -67,6 +70,9 @@ const Popup = (): JSX.Element => {
       chrome.storage.sync.set({ user: loggedInUser }, async () => {
         setUser(loggedInUser)
         const response = await API.fetchExamEvents(loggedInUser.id)
+        chrome.browserAction.setBadgeText({
+          text: response.openExams.length.toString()
+        })
         setOpenExams(response.openExams)
         setUpcomingExams(response.upcomingExams)
         setMessage('')
@@ -84,6 +90,7 @@ const Popup = (): JSX.Element => {
     e.preventDefault()
     chrome.storage.sync.remove('user', () => {
       setUser(null)
+      chrome.browserAction.setBadgeText({ text: '' })
     })
   }
 
