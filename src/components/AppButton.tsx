@@ -1,7 +1,7 @@
 import React from 'react'
 
 interface AppButtonProps {
-  onClick: React.MouseEventHandler<HTMLButtonElement>;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   children: React.ReactNode;
 }
 
