@@ -100,9 +100,13 @@ const Popup = (): JSX.Element => {
         setUser(loggedInUser)
         fetchExamEvents(loggedInUser.id)
         setMessage('')
+        setEmailInput('')
+        setPasswordInput('')
       })
     } catch (error) {
       setMessage('Incorrect email or password.')
+      setEmailInput('')
+      setPasswordInput('')
     }
   }
 
