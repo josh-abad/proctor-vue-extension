@@ -1,6 +1,6 @@
 import React, { useState, useEffect }  from 'react'
 import ReactDOM from 'react-dom'
-import PopoutButton from '@/components/PopoutButton'
+import SettingsButton from '@/components/SettingsButton'
 import LogoutButton from '@/components/LogoutButton'
 import AppSwitch from '@/components/AppSwitch'
 import { ExamEvent, User } from '@/types'
@@ -90,7 +90,7 @@ const Popup = (): JSX.Element => {
   return (
     <div className="antialiased text-white bg-gray-800">
       <div className="flex items-center justify-between p-2 border-b border-gray-700 w-80">
-        <PopoutButton />
+        <SettingsButton />
         <AppLogo />
         <span className={user ? 'opacity-100' : 'opacity-0 pointer-events-none'}>
           <LogoutButton onClick={handleLogOut} />
