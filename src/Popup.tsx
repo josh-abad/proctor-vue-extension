@@ -3,15 +3,13 @@ import ReactDOM from 'react-dom'
 import PopoutButton from '@/components/PopoutButton'
 import LogoutButton from '@/components/LogoutButton'
 import AppSwitch from '@/components/AppSwitch'
-import { EventResponse, ExamEvent, User } from '@/types'
-import axios from 'axios'
+import { ExamEvent, User } from '@/types'
 import LoginView from '@/components/LoginView'
 import EventItem from '@/components/EventItem'
 import EventList from '@/components/EventList'
 import ErrorMessage from '@/components/ErrorMessage'
 import AppLogo from '@/components/AppLogo'
-
-const API_URL = 'https://api.proctorvue.live'
+import API from '@/api'
 
 const Popup = (): JSX.Element => {
   const [openExams, setOpenExams] = useState<ExamEvent[]>([])
@@ -25,42 +23,13 @@ const Popup = (): JSX.Element => {
     chrome.storage.sync.get(['user'], items => {
       if (items.user) {
         setUser(items.user)
-        fetchExamEvents(items.user.id)
+        API.fetchExamEvents(items.user.id).then(response => {
+          setOpenExams(response.openExams)
+          setUpcomingExams(response.upcomingExams)
+        })
       }
     })
   }, [])
-
-  const fetchExamEvents = async (id: string) => {
-    try {
-      const { data } = await axios
-        .get<EventResponse[]>(`${API_URL}/users/${id}/upcoming-exams`)
-
-      const mapEvent = (event: EventResponse): ExamEvent => {
-        return {
-          course: event.location,
-          name: event.subject,
-          eventType: event.action === 'opens' ? 'UPCOMING' : 'ACTIVE',
-          date: event.date,
-          url: event.subjectUrl,
-          courseUrl: event.locationUrl
-        }
-      }
-
-      const fetchedOpenExams = data
-        .filter(event => event.action === 'closes')
-        .map(mapEvent)
-
-      setOpenExams(fetchedOpenExams)
-
-      const fetchedUpcomingExams = data
-        .filter(event => event.action === 'opens')
-        .map(mapEvent)
-
-      setUpcomingExams(fetchedUpcomingExams)
-    } catch (error) {
-      setUpcomingExams([])
-    }
-  }
 
   const renderExamsEvents = (events: ExamEvent[], upcoming = true) => {
     if (!events.length) {
@@ -94,11 +63,12 @@ const Popup = (): JSX.Element => {
     }
 
     try { 
-      const { data } = await axios.post<Omit<User, 'tracking'>>(`${API_URL}/login`, credentials)
-      const loggedInUser = { ...data, tracking: false }
-      chrome.storage.sync.set({ user: loggedInUser }, () => {
+      const loggedInUser = await API.login(credentials)
+      chrome.storage.sync.set({ user: loggedInUser }, async () => {
         setUser(loggedInUser)
-        fetchExamEvents(loggedInUser.id)
+        const response = await API.fetchExamEvents(loggedInUser.id)
+        setOpenExams(response.openExams)
+        setUpcomingExams(response.upcomingExams)
         setMessage('')
         setEmailInput('')
         setPasswordInput('')
