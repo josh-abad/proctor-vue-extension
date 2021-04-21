@@ -120,6 +120,7 @@ const Popup = (): JSX.Element => {
           <LogoutButton onClick={handleLogOut} />
         </span>
       </div>
+      {user ? (
         <div className="p-2 space-y-3">
           <EventList header="Exams for Today">
             {renderExamsEvents(openExams, false)}
@@ -128,7 +129,7 @@ const Popup = (): JSX.Element => {
             {renderExamsEvents(upcomingExams)}
           </EventList>
         </div>
-        :
+      ) : (
         <>
           <LoginView
             email={emailInput}
@@ -139,8 +140,8 @@ const Popup = (): JSX.Element => {
           />
           {message && <ErrorMessage message={message} />}
         </>
-      }
-      {user &&
+      )}
+      {user && (
         <div className="p-2 border-t border-gray-700">
           <AppSwitch
             checked={user.tracking}
@@ -148,7 +149,7 @@ const Popup = (): JSX.Element => {
             label={`Tracking ${user.tracking ? 'Enabled' : 'Disabled'}`}
           />
         </div>
-      }
+      )}
     </div>
   )
 }
