@@ -6,7 +6,7 @@ import InputLabel from './InputLabel'
 interface LoginViewProps {
   email: string;
   password: string;
-  onSubmit: React.MouseEventHandler<HTMLButtonElement>;
+  onSubmit: React.FormEventHandler<HTMLFormElement>;
   onEmailChange: React.ChangeEventHandler<HTMLInputElement>;
   onPasswordChange: React.ChangeEventHandler<HTMLInputElement>;
 }
@@ -16,7 +16,7 @@ const LoginView = (props: LoginViewProps): JSX.Element => {
 
   return (
     <div className="flex justify-center w-full">
-      <div className="py-5">
+      <form className="py-5" onSubmit={onSubmit}>
         <div>
           <InputLabel htmlFor="email">Email</InputLabel>
           <AppTextInput id="email" value={email} onChange={onEmailChange} />
@@ -31,11 +31,11 @@ const LoginView = (props: LoginViewProps): JSX.Element => {
           />
         </div>
         <div className="mt-3">
-          <AppButton onClick={onSubmit}>
+          <AppButton type="submit">
             Sign In
           </AppButton>
         </div>
-      </div>
+      </form>
     </div>
   )
 }

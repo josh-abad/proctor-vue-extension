@@ -85,7 +85,7 @@ const Popup = (): JSX.Element => {
     }
   }
 
-  const handleLogIn: React.MouseEventHandler<HTMLButtonElement> = async (e) => {
+  const handleLogIn: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault()
 
     const credentials = {
