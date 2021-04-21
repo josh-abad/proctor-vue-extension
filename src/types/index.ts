@@ -8,6 +8,8 @@ export interface ExamEvent {
   course: string;
   eventType: 'UPCOMING' | 'ACTIVE';
   date: Date;
+  url: string;
+  courseUrl: string;
 }
 
 export interface EventResponse {

@@ -40,7 +40,9 @@ const Popup = (): JSX.Element => {
           course: event.location,
           name: event.subject,
           eventType: event.action === 'opens' ? 'UPCOMING' : 'ACTIVE',
-          date: event.date
+          date: event.date,
+          url: event.subjectUrl,
+          courseUrl: event.locationUrl
         }
       }
 
