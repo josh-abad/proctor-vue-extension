@@ -27,7 +27,7 @@ const Popup = (): JSX.Element => {
         fetchExamEvents(items.user.id)
       }
     })
-  })
+  }, [])
 
   const fetchExamEvents = async (id: string) => {
     try {
