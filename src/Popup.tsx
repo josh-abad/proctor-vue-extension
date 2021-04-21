@@ -9,6 +9,7 @@ import LoginView from '@/components/LoginView'
 import EventItem from '@/components/EventItem'
 import EventList from '@/components/EventList'
 import ErrorMessage from '@/components/ErrorMessage'
+import AppLogo from '@/components/AppLogo'
 
 const API_URL = 'https://api.proctorvue.live'
 
@@ -114,7 +115,7 @@ const Popup = (): JSX.Element => {
     <div className="antialiased text-white bg-gray-800">
       <div className="flex items-center justify-between p-2 border-b border-gray-700 w-80">
         <PopoutButton />
-        <img src="logo.png" alt="Logo" className="w-32" />
+        <AppLogo />
         <span className={user ? 'opacity-100' : 'opacity-0 pointer-events-none'}>
           <LogoutButton onClick={handleLogOut} />
         </span>
