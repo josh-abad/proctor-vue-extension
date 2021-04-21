@@ -7,7 +7,7 @@ const SettingsButton = (): JSX.Element => {
   }
 
   return (
-    <button onClick={handleClick} className="focus:outline-none">
+    <button onClick={handleClick} className="focus:outline-none" title="Open Settings">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         className="w-6 h-6"
