@@ -3,6 +3,16 @@
 
 /** @type {import("snowpack").SnowpackUserConfig } */
 module.exports = {
+  optimize: {
+    entrypoints: [
+      './src/background.ts',
+      './src/Options.tsx',
+      './src/Popup.tsx'
+    ],
+    bundle: true,
+    sourcemap: false,
+    minify: true
+  },
   alias: {
     '@': './src'
   },

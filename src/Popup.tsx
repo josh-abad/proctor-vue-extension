@@ -1,16 +1,24 @@
 import React, { useState, useEffect }  from 'react'
 import ReactDOM from 'react-dom'
-import PopoutButton from '@/components/PopoutButton'
+import SettingsButton from '@/components/SettingsButton'
 import LogoutButton from '@/components/LogoutButton'
 import AppSwitch from '@/components/AppSwitch'
-import { EventResponse, ExamEvent, User } from '@/types'
-import axios from 'axios'
+import { ExamEvent, User } from '@/types'
 import LoginView from '@/components/LoginView'
 import EventItem from '@/components/EventItem'
 import EventList from '@/components/EventList'
 import ErrorMessage from '@/components/ErrorMessage'
+import AppLogo from '@/components/AppLogo'
+import API from '@/api'
 
-const API_URL = 'https://api.proctorvue.live'
+const updateBadge = (n?: number) => {
+  chrome.browserAction.setBadgeText({
+    text: n?.toString() ?? ''
+  })
+  chrome.browserAction.setTitle({
+    title: n ? `${n} ${n === 1 ? 'exam' : 'exams'} today` : ''
+  })
+}
 
 const Popup = (): JSX.Element => {
   const [openExams, setOpenExams] = useState<ExamEvent[]>([])
@@ -24,40 +32,14 @@ const Popup = (): JSX.Element => {
     chrome.storage.sync.get(['user'], items => {
       if (items.user) {
         setUser(items.user)
-        fetchExamEvents(items.user.id)
+        API.fetchExamEvents(items.user.id).then(response => {
+          updateBadge(response.openExams.length)
+          setOpenExams(response.openExams)
+          setUpcomingExams(response.upcomingExams)
+        })
       }
     })
-  })
-
-  const fetchExamEvents = async (id: string) => {
-    try {
-      const { data } = await axios
-        .get<EventResponse[]>(`${API_URL}/users/${id}/upcoming-exams`)
-
-      const mapEvent = (event: EventResponse): ExamEvent => {
-        return {
-          course: event.location,
-          name: event.subject,
-          eventType: event.action === 'opens' ? 'UPCOMING' : 'ACTIVE',
-          date: event.date
-        }
-      }
-
-      const fetchedOpenExams = data
-        .filter(event => event.action === 'closes')
-        .map(mapEvent)
-
-      setOpenExams(fetchedOpenExams)
-
-      const fetchedUpcomingExams = data
-        .filter(event => event.action === 'opens')
-        .map(mapEvent)
-
-      setUpcomingExams(fetchedUpcomingExams)
-    } catch (error) {
-      setUpcomingExams([])
-    }
-  }
+  }, [])
 
   const renderExamsEvents = (events: ExamEvent[], upcoming = true) => {
     if (!events.length) {
@@ -82,7 +64,7 @@ const Popup = (): JSX.Element => {
     }
   }
 
-  const handleLogIn: React.MouseEventHandler<HTMLButtonElement> = async (e) => {
+  const handleLogIn: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault()
 
     const credentials = {
@@ -91,15 +73,21 @@ const Popup = (): JSX.Element => {
     }
 
     try { 
-      const { data } = await axios.post<Omit<User, 'tracking'>>(`${API_URL}/login`, credentials)
-      const loggedInUser = { ...data, tracking: false }
-      chrome.storage.sync.set({ user: loggedInUser }, () => {
+      const loggedInUser = await API.login(credentials)
+      chrome.storage.sync.set({ user: loggedInUser }, async () => {
         setUser(loggedInUser)
-        fetchExamEvents(loggedInUser.id)
+        const response = await API.fetchExamEvents(loggedInUser.id)
+        updateBadge(response.openExams.length)
+        setOpenExams(response.openExams)
+        setUpcomingExams(response.upcomingExams)
         setMessage('')
+        setEmailInput('')
+        setPasswordInput('')
       })
     } catch (error) {
       setMessage('Incorrect email or password.')
+      setEmailInput('')
+      setPasswordInput('')
     }
   }
 
@@ -107,20 +95,21 @@ const Popup = (): JSX.Element => {
     e.preventDefault()
     chrome.storage.sync.remove('user', () => {
       setUser(null)
+      updateBadge()
     })
   }
 
   return (
     <div className="antialiased text-white bg-gray-800">
       <div className="flex items-center justify-between p-2 border-b border-gray-700 w-80">
-        <PopoutButton />
-        <img src="logo.png" alt="Logo" className="w-32" />
+        <SettingsButton />
+        <AppLogo />
         <span className={user ? 'opacity-100' : 'opacity-0 pointer-events-none'}>
           <LogoutButton onClick={handleLogOut} />
         </span>
       </div>
-      {user ?
-        <div className="p-2">
+      {user ? (
+        <div className="p-2 space-y-3">
           <EventList header="Exams for Today">
             {renderExamsEvents(openExams, false)}
           </EventList>
@@ -128,7 +117,7 @@ const Popup = (): JSX.Element => {
             {renderExamsEvents(upcomingExams)}
           </EventList>
         </div>
-        :
+      ) : (
         <>
           <LoginView
             email={emailInput}
@@ -139,8 +128,8 @@ const Popup = (): JSX.Element => {
           />
           {message && <ErrorMessage message={message} />}
         </>
-      }
-      {user &&
+      )}
+      {user && (
         <div className="p-2 border-t border-gray-700">
           <AppSwitch
             checked={user.tracking}
@@ -148,7 +137,7 @@ const Popup = (): JSX.Element => {
             label={`Tracking ${user.tracking ? 'Enabled' : 'Disabled'}`}
           />
         </div>
-      }
+      )}
     </div>
   )
 }
