@@ -1,7 +1,7 @@
 {
   "name": "Proctor Vue",
   "description": "A browser extension for Proctor Vue",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "manifest_version": 2,
   "background": {
     "scripts": ["dist/background.js"],
