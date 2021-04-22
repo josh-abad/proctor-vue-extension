@@ -21,6 +21,7 @@ module.exports = {
     src: '/dist'
   },
   plugins: [
+    ['@snowpack/plugin-optimize'],
     '@snowpack/plugin-typescript',
     '@snowpack/plugin-postcss',
     '@jadex/snowpack-plugin-tailwindcss-jit'
