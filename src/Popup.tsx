@@ -11,6 +11,15 @@ import ErrorMessage from '@/components/ErrorMessage'
 import AppLogo from '@/components/AppLogo'
 import API from '@/api'
 
+const updateBadge = (n?: number) => {
+  chrome.browserAction.setBadgeText({
+    text: n?.toString() ?? ''
+  })
+  chrome.browserAction.setTitle({
+    title: n ? `${n} ${n === 1 ? 'exam' : 'exams'} today` : ''
+  })
+}
+
 const Popup = (): JSX.Element => {
   const [openExams, setOpenExams] = useState<ExamEvent[]>([])
   const [upcomingExams, setUpcomingExams] = useState<ExamEvent[]>([])
@@ -24,9 +33,7 @@ const Popup = (): JSX.Element => {
       if (items.user) {
         setUser(items.user)
         API.fetchExamEvents(items.user.id).then(response => {
-          chrome.browserAction.setBadgeText({
-            text: response.openExams.length.toString()
-          })
+          updateBadge(response.openExams.length)
           setOpenExams(response.openExams)
           setUpcomingExams(response.upcomingExams)
         })
@@ -70,9 +77,7 @@ const Popup = (): JSX.Element => {
       chrome.storage.sync.set({ user: loggedInUser }, async () => {
         setUser(loggedInUser)
         const response = await API.fetchExamEvents(loggedInUser.id)
-        chrome.browserAction.setBadgeText({
-          text: response.openExams.length.toString()
-        })
+        updateBadge(response.openExams.length)
         setOpenExams(response.openExams)
         setUpcomingExams(response.upcomingExams)
         setMessage('')
@@ -90,7 +95,7 @@ const Popup = (): JSX.Element => {
     e.preventDefault()
     chrome.storage.sync.remove('user', () => {
       setUser(null)
-      chrome.browserAction.setBadgeText({ text: '' })
+      updateBadge()
     })
   }
 
