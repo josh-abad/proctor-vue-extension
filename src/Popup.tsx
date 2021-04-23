@@ -1,4 +1,5 @@
-import React, { useState, useEffect }  from 'react'
+import React from 'react'
+import { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import SettingsButton from '@/components/SettingsButton'
 import LogoutButton from '@/components/LogoutButton'
@@ -10,15 +11,6 @@ import EventList from '@/components/EventList'
 import ErrorMessage from '@/components/ErrorMessage'
 import AppLogo from '@/components/AppLogo'
 import API from '@/api'
-
-const updateBadge = (n?: number) => {
-  chrome.browserAction.setBadgeText({
-    text: n?.toString() ?? ''
-  })
-  chrome.browserAction.setTitle({
-    title: n ? `${n} ${n === 1 ? 'exam' : 'exams'} today` : ''
-  })
-}
 
 const Popup = (): JSX.Element => {
   const [openExams, setOpenExams] = useState<ExamEvent[]>([])
@@ -33,13 +25,26 @@ const Popup = (): JSX.Element => {
       if (items.user) {
         setUser(items.user)
         API.fetchExamEvents(items.user.id).then(response => {
-          updateBadge(response.openExams.length)
           setOpenExams(response.openExams)
           setUpcomingExams(response.upcomingExams)
         })
       }
     })
   }, [])
+
+  useEffect(() => {
+    chrome.storage.sync.set({ user })
+  }, [user])
+
+  useEffect(() => {
+    const n = openExams.length
+    chrome.browserAction.setBadgeText({
+      text: `${n || ''}`
+    })
+    chrome.browserAction.setTitle({
+      title: n ? `${n} ${n === 1? 'exam' : 'exams'} today` : ''
+    })
+  }, [openExams])
 
   const renderExamsEvents = (events: ExamEvent[], upcoming = true) => {
     if (!events.length) {
@@ -58,9 +63,7 @@ const Popup = (): JSX.Element => {
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     if (user) {
       const updatedUser = { ...user, tracking: e.target.checked }
-      chrome.storage.sync.set({ user: updatedUser }, () => {
-        setUser(updatedUser)
-      })
+      setUser(updatedUser)
     }
   }
 
@@ -74,16 +77,15 @@ const Popup = (): JSX.Element => {
 
     try { 
       const loggedInUser = await API.login(credentials)
-      chrome.storage.sync.set({ user: loggedInUser }, async () => {
-        setUser(loggedInUser)
-        const response = await API.fetchExamEvents(loggedInUser.id)
-        updateBadge(response.openExams.length)
-        setOpenExams(response.openExams)
-        setUpcomingExams(response.upcomingExams)
-        setMessage('')
-        setEmailInput('')
-        setPasswordInput('')
-      })
+      setUser(loggedInUser)
+
+      const response = await API.fetchExamEvents(loggedInUser.id)
+      setOpenExams(response.openExams)
+      setUpcomingExams(response.upcomingExams)
+
+      setMessage('')
+      setEmailInput('')
+      setPasswordInput('')
     } catch (error) {
       setMessage('Incorrect email or password.')
       setEmailInput('')
@@ -93,10 +95,9 @@ const Popup = (): JSX.Element => {
 
   const handleLogOut: React.MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault()
-    chrome.storage.sync.remove('user', () => {
-      setUser(null)
-      updateBadge()
-    })
+    setUser(null)
+    setOpenExams([])
+    setUpcomingExams([])
   }
 
   return (
