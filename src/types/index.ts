@@ -3,25 +3,6 @@ export interface Activity {
   time: string;
 }
 
-export interface ExamEvent {
-  name: string;
-  course: string;
-  eventType: 'UPCOMING' | 'ACTIVE';
-  date: Date;
-  url: string;
-  courseUrl: string;
-}
-
-export interface EventResponse {
-  location: string;
-  locationUrl: string;
-  subject: string;
-  subjectId: string;
-  subjectUrl: string;
-  action: string;
-  date: Date;
-}
-
 export interface User {
   id: string;
   fullName: string;
@@ -30,4 +11,17 @@ export interface User {
   role: 'student' | 'coordinator' | 'admin';
   token: string;
   tracking: boolean;
+}
+
+export interface Course {
+  id: string;
+  name: string;
+}
+
+export interface Exam {
+  id: string;
+  label: string;
+  course: Course;
+  startDate: Date;
+  endDate: Date;
 }

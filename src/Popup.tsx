@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom'
 import SettingsButton from '@/components/SettingsButton'
 import LogoutButton from '@/components/LogoutButton'
 import AppSwitch from '@/components/AppSwitch'
-import { ExamEvent, User } from '@/types'
+import { Exam, User } from '@/types'
 import LoginView from '@/components/LoginView'
 import EventItem from '@/components/EventItem'
 import EventList from '@/components/EventList'
@@ -13,8 +13,8 @@ import AppLogo from '@/components/AppLogo'
 import API from '@/api'
 
 const Popup = (): JSX.Element => {
-  const [openExams, setOpenExams] = useState<ExamEvent[]>([])
-  const [upcomingExams, setUpcomingExams] = useState<ExamEvent[]>([])
+  const [openExams, setOpenExams] = useState<Exam[]>([])
+  const [upcomingExams, setUpcomingExams] = useState<Exam[]>([])
   const [user, setUser] = useState<User | null>(null)
   const [emailInput, setEmailInput] = useState('')
   const [passwordInput, setPasswordInput] = useState('')
@@ -24,9 +24,11 @@ const Popup = (): JSX.Element => {
     chrome.storage.sync.get(['user'], items => {
       if (items.user) {
         setUser(items.user)
-        API.fetchExamEvents(items.user.id).then(response => {
-          setOpenExams(response.openExams)
-          setUpcomingExams(response.upcomingExams)
+        API.fetchOpenExams(items.user.id).then(fetchedOpenExams => {
+          setOpenExams(fetchedOpenExams)
+        })
+        API.fetchUpcomingExams(items.user.id).then(fetchedUpcomingExams => {
+          setUpcomingExams(fetchedUpcomingExams)
         })
       }
     })
@@ -46,8 +48,8 @@ const Popup = (): JSX.Element => {
     })
   }, [openExams])
 
-  const renderExamsEvents = (events: ExamEvent[], upcoming = true) => {
-    if (!events.length) {
+  const renderExamsEvents = (exams: Exam[], upcoming = true) => {
+    if (!exams.length) {
       return (
         <div className="flex justify-center w-full">
           <span className="py-1 text-gray-500">No exams available</span>
@@ -55,8 +57,8 @@ const Popup = (): JSX.Element => {
       )
     }
 
-    return events.map((e, i) => (
-      <EventItem event={e} key={i} upcoming={upcoming} />
+    return exams.map(exam => (
+      <EventItem exam={exam} key={exam.id} upcoming={upcoming} />
     ))
   }
 
@@ -79,9 +81,16 @@ const Popup = (): JSX.Element => {
       const loggedInUser = await API.login(credentials)
       setUser(loggedInUser)
 
-      const response = await API.fetchExamEvents(loggedInUser.id)
-      setOpenExams(response.openExams)
-      setUpcomingExams(response.upcomingExams)
+      const [
+        fetchedOpenExams,
+        fetchedUpcomingExams
+      ] = await Promise.all([
+        API.fetchOpenExams(loggedInUser.id),
+        API.fetchUpcomingExams(loggedInUser.id)
+      ])
+
+      setOpenExams(fetchedOpenExams)
+      setUpcomingExams(fetchedUpcomingExams)
 
       setMessage('')
       setEmailInput('')
