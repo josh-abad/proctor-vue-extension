@@ -11,7 +11,7 @@ async function fetchOpenExams (id: string) {
 }
 
 async function fetchUpcomingExams (id: string) {
-  const response = await axios.get<Exam[]>(`${API_URL}/users/v2/${id}/upcoming-exams`)
+  const response = await axios.get<Exam[]>(`${API_URL}/users/${id}/upcoming-exams`)
   return response.data
 }
 
