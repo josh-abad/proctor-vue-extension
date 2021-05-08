@@ -32,7 +32,7 @@ const Popup = (): JSX.Element => {
     areUpcomingExamsLoading,
     upcomingExamsError,
     clearUpcomingExams
-  ] = useFetch(API.fetchOpenExams)
+  ] = useFetch(API.fetchUpcomingExams)
 
   useEffect(() => {
     chrome.storage.sync.get(['user'], items => {
