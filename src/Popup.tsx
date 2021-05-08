@@ -11,25 +11,35 @@ import EventList from '@/components/EventList'
 import ErrorMessage from '@/components/ErrorMessage'
 import AppLogo from '@/components/AppLogo'
 import API from '@/api'
+import { useFetch } from '@/hooks'
+import LoadingWheel from './components/LoadingWheel'
 
 const Popup = (): JSX.Element => {
-  const [openExams, setOpenExams] = useState<Exam[]>([])
-  const [upcomingExams, setUpcomingExams] = useState<Exam[]>([])
   const [user, setUser] = useState<User | null>(null)
   const [emailInput, setEmailInput] = useState('')
   const [passwordInput, setPasswordInput] = useState('')
   const [message, setMessage] = useState('')
+  const [
+    openExams,
+    fetchOpenExams,
+    areOpenExamsLoading,
+    openExamsError,
+    clearOpenExams
+  ] = useFetch(API.fetchOpenExams)
+  const [
+    upcomingExams,
+    fetchUpcomingExams,
+    areUpcomingExamsLoading,
+    upcomingExamsError,
+    clearUpcomingExams
+  ] = useFetch(API.fetchOpenExams)
 
   useEffect(() => {
     chrome.storage.sync.get(['user'], items => {
       if (items.user) {
         setUser(items.user)
-        API.fetchOpenExams(items.user.id).then(fetchedOpenExams => {
-          setOpenExams(fetchedOpenExams)
-        })
-        API.fetchUpcomingExams(items.user.id).then(fetchedUpcomingExams => {
-          setUpcomingExams(fetchedUpcomingExams)
-        })
+        fetchOpenExams(items.user.id)
+        fetchUpcomingExams(items.user.id)
       }
     })
   }, [])
@@ -48,7 +58,19 @@ const Popup = (): JSX.Element => {
     })
   }, [openExams])
 
-  const renderExamsEvents = (exams: Exam[], upcoming = true) => {
+  const renderExamsEvents = (exams: Exam[], isLoading: boolean, error: boolean) => {
+    if (error) {
+      return <div className="flex justify-center w-full text-gray-400">Couldn&apos;t load exams.</div>
+    }
+
+    if (isLoading) {
+      return (
+        <div className="flex justify-center w-full">
+          <LoadingWheel />
+        </div>  
+      )
+    }
+
     if (!exams.length) {
       return (
         <div className="flex justify-center w-full">
@@ -58,7 +80,7 @@ const Popup = (): JSX.Element => {
     }
 
     return exams.map(exam => (
-      <EventItem exam={exam} key={exam.id} upcoming={upcoming} />
+      <EventItem exam={exam} key={exam.id} />
     ))
   }
 
@@ -81,16 +103,10 @@ const Popup = (): JSX.Element => {
       const loggedInUser = await API.login(credentials)
       setUser(loggedInUser)
 
-      const [
-        fetchedOpenExams,
-        fetchedUpcomingExams
-      ] = await Promise.all([
-        API.fetchOpenExams(loggedInUser.id),
-        API.fetchUpcomingExams(loggedInUser.id)
+      await Promise.all([
+        fetchOpenExams(loggedInUser.id),
+        fetchUpcomingExams(loggedInUser.id)
       ])
-
-      setOpenExams(fetchedOpenExams)
-      setUpcomingExams(fetchedUpcomingExams)
 
       setMessage('')
       setEmailInput('')
@@ -105,8 +121,8 @@ const Popup = (): JSX.Element => {
   const handleLogOut: React.MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault()
     setUser(null)
-    setOpenExams([])
-    setUpcomingExams([])
+    clearOpenExams()
+    clearUpcomingExams()
   }
 
   return (
@@ -121,10 +137,10 @@ const Popup = (): JSX.Element => {
       {user ? (
         <div className="p-2 space-y-3">
           <EventList header="Exams for Today">
-            {renderExamsEvents(openExams, false)}
+            {renderExamsEvents(openExams, areOpenExamsLoading, openExamsError)}
           </EventList>
           <EventList header="Upcoming Exams">
-            {renderExamsEvents(upcomingExams)}
+            {renderExamsEvents(upcomingExams, areUpcomingExamsLoading, upcomingExamsError)}
           </EventList>
         </div>
       ) : (

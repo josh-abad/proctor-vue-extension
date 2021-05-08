@@ -13,7 +13,7 @@ const EventList = ({ header, children }: EventListProps): JSX.Element => {
           {header}
         </h2>
       </header>
-      <ul className="flex justify-center w-full">
+      <ul className="flex flex-col items-center w-full">
         {children}
       </ul>
     </>
