@@ -9,13 +9,13 @@ const BASE_URL = 'https://www.proctorvue.live'
 
 const EventItem = ({ exam }: EventItemProps): JSX.Element => {
   return (
-    <li className="py-1 text-sm">
+    <li className="text-sm">
       <span>
         <a
           href={`${BASE_URL}/courses/${exam.course.id}/exams/${exam.id}`}
           target="_blank"
           rel="noreferrer"
-          className="font-semibold text-green-300 hover:underline"
+          className="font-semibold text-indigo-300 hover:underline"
         >
           {exam.label}
         </a>
@@ -24,7 +24,7 @@ const EventItem = ({ exam }: EventItemProps): JSX.Element => {
       <span>
         <a
           href={`${BASE_URL}/courses/${exam.course.id}`}
-          className="font-semibold hover:underline"
+          className="font-semibold text-indigo-300 hover:underline"
           target="_blank"
           rel="noreferrer"
         >

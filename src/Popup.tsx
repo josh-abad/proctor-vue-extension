@@ -85,10 +85,7 @@ const Popup = (): JSX.Element => {
   }
 
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-    if (user) {
-      const updatedUser = { ...user, tracking: e.target.checked }
-      setUser(updatedUser)
-    }
+    setTracking(e.target.checked)
   }
 
   const handleLogIn: React.FormEventHandler<HTMLFormElement> = async (e) => {
@@ -135,13 +132,17 @@ const Popup = (): JSX.Element => {
         </span>
       </div>
       {user ? (
-        <div className="p-2 space-y-3">
+        <div className="px-4 py-2 space-y-3">
           <EventList header="Exams for Today">
             {renderExamsEvents(openExams, areOpenExamsLoading, openExamsError)}
           </EventList>
-          <EventList header="Upcoming Exams">
-            {renderExamsEvents(upcomingExams, areUpcomingExamsLoading, upcomingExamsError)}
-          </EventList>
+          {upcomingExams.length > 0 || areOpenExamsLoading ?(
+            <EventList header="Upcoming Exams">
+              {renderExamsEvents(upcomingExams, areUpcomingExamsLoading, upcomingExamsError)}
+            </EventList>
+          ) : (
+            ''
+          )}
         </div>
       ) : (
         <>
