@@ -10,7 +10,6 @@ export interface User {
   verified: string;
   role: 'student' | 'coordinator' | 'admin';
   token: string;
-  tracking: boolean;
 }
 
 export interface Course {

@@ -16,6 +16,7 @@ import LoadingWheel from './components/LoadingWheel'
 
 const Popup = (): JSX.Element => {
   const [user, setUser] = useState<User | null>(null)
+  const [tracking, setTracking] = useState(false)
   const [emailInput, setEmailInput] = useState('')
   const [passwordInput, setPasswordInput] = useState('')
   const [message, setMessage] = useState('')
@@ -47,6 +48,10 @@ const Popup = (): JSX.Element => {
   useEffect(() => {
     chrome.storage.sync.set({ user })
   }, [user])
+
+  useEffect(() => {
+    chrome.storage.sync.set({ tracking })
+  }, [tracking])
 
   useEffect(() => {
     const n = openExams.length
@@ -159,9 +164,9 @@ const Popup = (): JSX.Element => {
       {user && (
         <div className="p-2 border-t border-gray-700">
           <AppSwitch
-            checked={user.tracking}
+            checked={tracking}
             onChange={handleChange}
-            label={`Tracking ${user.tracking ? 'Enabled' : 'Disabled'}`}
+            label={`Tracking ${tracking ? 'Enabled' : 'Disabled'}`}
           />
         </div>
       )}

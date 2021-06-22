@@ -23,7 +23,7 @@ interface UserCredentials {
 const login = async (credentials: UserCredentials): Promise<User> => {
   const { data } = await axios
     .post<Omit<User, 'tracking'>>(`${API_URL}/login`, credentials)
-  return { ...data, tracking: false }
+  return data
 }
 
 export default { fetchOpenExams, fetchUpcomingExams, login }

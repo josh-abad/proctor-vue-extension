@@ -2,9 +2,10 @@ import { Activity } from '@/types'
 
 const activities: Activity[] = []
 
-const addActivity = (activity: Activity) => {
-  activities.push(activity)
-  console.log(`Visited ${activity.url} at ${activity.time}`)
+const addActivity = (url: string) => {
+  const time = new Date().toLocaleTimeString()
+  activities.push({ url, time })
+  console.log(`Visited ${url} at ${time}`)
 }
 
 const updateIcon = (on: boolean) => {
@@ -13,23 +14,6 @@ const updateIcon = (on: boolean) => {
   })
 }
 
-// Change icon when tracking has changed
-chrome.storage.onChanged.addListener((changes) => {
-  if (changes.user) {
-    const { oldValue, newValue } = changes.user
-
-    /**
-     * User logged in (!oldValue) or user logged out (!newValue).
-     * Either way, icon should be set to 'off' variant.
-     */
-    if (!oldValue || !newValue) {
-      updateIcon(false)
-    } else {
-      updateIcon(newValue.tracking)
-    }
-  }
-})
-
 // Set badge to Proctor Vue green
 chrome.runtime.onInstalled.addListener(() => {
   chrome.browserAction.setBadgeBackgroundColor({ color: '#10B981' })
@@ -37,20 +21,77 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Set icon depending on if user is logged in and has tracking on
 chrome.runtime.onStartup.addListener(() => {
-  chrome.storage.sync.get(['user'], items => {
-    updateIcon(items.user?.tracking)
+  chrome.storage.sync.get(['tracking'], items => {
+    updateIcon(items.tracking)
   })
 })
 
-chrome.tabs.onActivated.addListener(({ tabId }) => {
-  chrome.tabs.get(tabId, ({ url }) => {
-    chrome.storage.sync.get(['user'], items => {
-      if (items.user?.tracking) {
-        addActivity({
-          time: new Date().toLocaleTimeString(),
-          url: url?.split('/')[2] || 'new tab'
+chrome.runtime.onConnectExternal.addListener(port => {
+  port.onDisconnect.addListener(() => {
+    chrome.storage.sync.set({ tracking: false })
+  })
+
+  if (port.name === 'Squid') {
+    port.onMessage.addListener(response => {
+      if (response === 'installed?') {
+        chrome.storage.sync.get(['tracking'], items => {
+          port.postMessage({ tracking: items.tracking, sitesVisited: activities })
         })
       }
     })
-  })
+
+    chrome.storage.onChanged.addListener((changes) => {
+      if (changes.tracking) {
+        const { newValue } = changes.tracking
+
+        port.postMessage({ tracking: newValue, sitesVisited: activities })
+
+        updateIcon(newValue)
+      }
+    })
+
+    chrome.tabs.onCreated.addListener(() => {
+      chrome.storage.sync.get(['tracking'], items => {
+        if (items.tracking) {
+          addActivity('new tab')
+          port.postMessage({
+            tracking: items.tracking,
+            sitesVisited: activities
+          })
+        }
+      })
+    })
+
+    chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+      chrome.storage.sync.get(['tracking'], items => {
+        if (items.tracking) {
+          if (changeInfo.url) {
+            addActivity(changeInfo.url.split('/')[2])
+            port.postMessage({
+              tracking: items.tracking,
+              sitesVisited: activities
+            })
+          }
+        }
+      })
+    })
+
+    chrome.tabs.onActivated.addListener(({ tabId }) => {
+      // Setting time out because chrome thinks the tab is moving, so wait a bit to make sure it isn't
+      setTimeout(() => {
+        chrome.tabs.get(tabId, tab => {
+          chrome.storage.sync.get(['tracking'], items => {
+            if (items.tracking) {
+              addActivity(tab.url?.split('/')[2] || 'new tab')
+              port.postMessage({
+                tracking: items.tracking,
+                sitesVisited: activities
+              })
+            }
+          })
+        })
+      }, 200)
+    })
+
+  }
 })
