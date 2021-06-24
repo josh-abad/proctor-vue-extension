@@ -43,6 +43,12 @@ const Popup = (): JSX.Element => {
         fetchUpcomingExams(items.user.id)
       }
     })
+
+    chrome.storage.sync.get(['tracking'], items => {
+      if (items.tracking) {
+        setTracking(items.tracking)
+      }
+    })
   }, [])
 
   useEffect(() => {
