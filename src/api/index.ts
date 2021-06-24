@@ -1,17 +1,33 @@
 import { Exam, User } from '@/types'
 import axios from 'axios'
 
+let token: string | null = null
+
+const setToken = (newToken: string) => {
+  token = `bearer ${newToken}`
+}
+
 const API_URL = import.meta.env.MODE === 'development'
   ? 'http://localhost:3001'
   : 'https://api.proctorvue.live'
 
-async function fetchOpenExams (id: string) {
-  const response = await axios.get<Exam[]>(`${API_URL}/users/${id}/open-exams`)
+async function fetchOpenExams () {
+  const config = {
+    headers: {
+      Authorization: token
+    }
+  }
+  const response = await axios.get<Exam[]>(`${API_URL}/user/open-exams`, config)
   return response.data
 }
 
-async function fetchUpcomingExams (id: string) {
-  const response = await axios.get<Exam[]>(`${API_URL}/users/${id}/upcoming-exams`)
+async function fetchUpcomingExams () {
+  const config = {
+    headers: {
+      Authorization: token
+    }
+  }
+  const response = await axios.get<Exam[]>(`${API_URL}/user/upcoming-exams`, config)
   return response.data
 }
 
@@ -26,4 +42,4 @@ const login = async (credentials: UserCredentials): Promise<User> => {
   return data
 }
 
-export default { fetchOpenExams, fetchUpcomingExams, login }
+export default { setToken, fetchOpenExams, fetchUpcomingExams, login }

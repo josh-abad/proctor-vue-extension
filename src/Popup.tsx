@@ -39,8 +39,9 @@ const Popup = (): JSX.Element => {
     chrome.storage.sync.get(['user'], items => {
       if (items.user) {
         setUser(items.user)
-        fetchOpenExams(items.user.id)
-        fetchUpcomingExams(items.user.id)
+        API.setToken(items.user.token)
+        fetchOpenExams()
+        fetchUpcomingExams()
       }
     })
   }, [])
@@ -100,10 +101,11 @@ const Popup = (): JSX.Element => {
     try { 
       const loggedInUser = await API.login(credentials)
       setUser(loggedInUser)
+      API.setToken(loggedInUser.token)
 
       await Promise.all([
-        fetchOpenExams(loggedInUser.id),
-        fetchUpcomingExams(loggedInUser.id)
+        fetchOpenExams(),
+        fetchUpcomingExams()
       ])
 
       setMessage('')

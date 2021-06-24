@@ -1,15 +1,15 @@
 import { Exam } from '@/types'
 import { useEffect, useState } from 'react'
 
-export function useFetch(callback: (id: string) => Promise<Exam[]>) {
+export function useFetch(callback: () => Promise<Exam[]>) {
   const [data, setData] = useState<Exam[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
 
-  async function fetchData (id: string) {
+  async function fetchData () {
     try {
       setLoading(true)
-      const fetchedData = await callback(id)
+      const fetchedData = await callback()
       setData(fetchedData)
     } catch (error) {
       setError(true)
