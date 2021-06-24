@@ -1,5 +1,5 @@
 import { Exam } from '@/types'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export function useFetch(callback: (id: string) => Promise<Exam[]>) {
   const [data, setData] = useState<Exam[]>([])
@@ -31,3 +31,20 @@ export function useFetch(callback: (id: string) => Promise<Exam[]>) {
   ] as const
 }
 
+export function useChromeStorage<T>(key: string, defaultValue: T) {
+  const [data, setData] = useState(defaultValue)
+
+  useEffect(() => {
+    chrome.storage.sync.get([key], items => {
+      if (items[key]) {
+        setData(items[key])
+      }
+    })
+  }, [])
+
+  useEffect(() => {
+    chrome.storage.sync.set({ [key]: data })
+  }, [data])
+
+  return [data, setData] as const
+}

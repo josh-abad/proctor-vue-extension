@@ -11,12 +11,12 @@ import EventList from '@/components/EventList'
 import ErrorMessage from '@/components/ErrorMessage'
 import AppLogo from '@/components/AppLogo'
 import API from '@/api'
-import { useFetch } from '@/hooks'
+import { useChromeStorage, useFetch } from '@/hooks'
 import LoadingWheel from './components/LoadingWheel'
 
 const Popup = (): JSX.Element => {
   const [user, setUser] = useState<User | null>(null)
-  const [tracking, setTracking] = useState(false)
+  const [tracking, setTracking] = useChromeStorage('tracking', false)
   const [emailInput, setEmailInput] = useState('')
   const [passwordInput, setPasswordInput] = useState('')
   const [message, setMessage] = useState('')
@@ -43,21 +43,11 @@ const Popup = (): JSX.Element => {
         fetchUpcomingExams(items.user.id)
       }
     })
-
-    chrome.storage.sync.get(['tracking'], items => {
-      if (items.tracking) {
-        setTracking(items.tracking)
-      }
-    })
   }, [])
 
   useEffect(() => {
     chrome.storage.sync.set({ user })
   }, [user])
-
-  useEffect(() => {
-    chrome.storage.sync.set({ tracking })
-  }, [tracking])
 
   useEffect(() => {
     const n = openExams.length
