@@ -10,7 +10,7 @@ const SettingsButton = (): JSX.Element => {
     <button onClick={handleClick} className="focus:outline-none" title="Open Settings">
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="w-6 h-6"
+        className="w-6 h-6 text-gray-500"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"

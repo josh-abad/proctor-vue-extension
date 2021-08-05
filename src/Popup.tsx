@@ -1,48 +1,79 @@
-import React, { useState, useEffect }  from 'react'
+import React from 'react'
+import { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import SettingsButton from '@/components/SettingsButton'
 import LogoutButton from '@/components/LogoutButton'
 import AppSwitch from '@/components/AppSwitch'
-import { ExamEvent, User } from '@/types'
+import { Exam, User } from '@/types'
 import LoginView from '@/components/LoginView'
 import EventItem from '@/components/EventItem'
 import EventList from '@/components/EventList'
 import ErrorMessage from '@/components/ErrorMessage'
 import AppLogo from '@/components/AppLogo'
 import API from '@/api'
-
-const updateBadge = (n?: number) => {
-  chrome.browserAction.setBadgeText({
-    text: n?.toString() ?? ''
-  })
-  chrome.browserAction.setTitle({
-    title: n ? `${n} ${n === 1 ? 'exam' : 'exams'} today` : ''
-  })
-}
+import { useChromeStorage, useFetch } from '@/hooks'
+import LoadingWheel from './components/LoadingWheel'
 
 const Popup = (): JSX.Element => {
-  const [openExams, setOpenExams] = useState<ExamEvent[]>([])
-  const [upcomingExams, setUpcomingExams] = useState<ExamEvent[]>([])
   const [user, setUser] = useState<User | null>(null)
+  const [tracking, setTracking] = useChromeStorage('tracking', false)
   const [emailInput, setEmailInput] = useState('')
   const [passwordInput, setPasswordInput] = useState('')
   const [message, setMessage] = useState('')
+  const [
+    openExams,
+    fetchOpenExams,
+    areOpenExamsLoading,
+    openExamsError,
+    clearOpenExams
+  ] = useFetch(API.fetchOpenExams)
+  const [
+    upcomingExams,
+    fetchUpcomingExams,
+    areUpcomingExamsLoading,
+    upcomingExamsError,
+    clearUpcomingExams
+  ] = useFetch(API.fetchUpcomingExams)
 
   useEffect(() => {
     chrome.storage.sync.get(['user'], items => {
       if (items.user) {
         setUser(items.user)
-        API.fetchExamEvents(items.user.id).then(response => {
-          updateBadge(response.openExams.length)
-          setOpenExams(response.openExams)
-          setUpcomingExams(response.upcomingExams)
-        })
+        API.setToken(items.user.token)
+        fetchOpenExams()
+        fetchUpcomingExams()
       }
     })
   }, [])
 
-  const renderExamsEvents = (events: ExamEvent[], upcoming = true) => {
-    if (!events.length) {
+  useEffect(() => {
+    chrome.storage.sync.set({ user })
+  }, [user])
+
+  useEffect(() => {
+    const n = openExams.length
+    chrome.browserAction.setBadgeText({
+      text: `${n || ''}`
+    })
+    chrome.browserAction.setTitle({
+      title: n ? `${n} ${n === 1? 'exam' : 'exams'} today` : ''
+    })
+  }, [openExams])
+
+  const renderExamsEvents = (exams: Exam[], isLoading: boolean, error: boolean) => {
+    if (error) {
+      return <div className="flex justify-center w-full text-gray-400">Couldn&apos;t load exams.</div>
+    }
+
+    if (isLoading) {
+      return (
+        <div className="flex justify-center w-full">
+          <LoadingWheel />
+        </div>  
+      )
+    }
+
+    if (!exams.length) {
       return (
         <div className="flex justify-center w-full">
           <span className="py-1 text-gray-500">No exams available</span>
@@ -50,18 +81,13 @@ const Popup = (): JSX.Element => {
       )
     }
 
-    return events.map((e, i) => (
-      <EventItem event={e} key={i} upcoming={upcoming} />
+    return exams.map(exam => (
+      <EventItem exam={exam} key={exam.id} />
     ))
   }
 
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-    if (user) {
-      const updatedUser = { ...user, tracking: e.target.checked }
-      chrome.storage.sync.set({ user: updatedUser }, () => {
-        setUser(updatedUser)
-      })
-    }
+    setTracking(e.target.checked)
   }
 
   const handleLogIn: React.FormEventHandler<HTMLFormElement> = async (e) => {
@@ -74,16 +100,17 @@ const Popup = (): JSX.Element => {
 
     try { 
       const loggedInUser = await API.login(credentials)
-      chrome.storage.sync.set({ user: loggedInUser }, async () => {
-        setUser(loggedInUser)
-        const response = await API.fetchExamEvents(loggedInUser.id)
-        updateBadge(response.openExams.length)
-        setOpenExams(response.openExams)
-        setUpcomingExams(response.upcomingExams)
-        setMessage('')
-        setEmailInput('')
-        setPasswordInput('')
-      })
+      setUser(loggedInUser)
+      API.setToken(loggedInUser.token)
+
+      await Promise.all([
+        fetchOpenExams(),
+        fetchUpcomingExams()
+      ])
+
+      setMessage('')
+      setEmailInput('')
+      setPasswordInput('')
     } catch (error) {
       setMessage('Incorrect email or password.')
       setEmailInput('')
@@ -93,10 +120,9 @@ const Popup = (): JSX.Element => {
 
   const handleLogOut: React.MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault()
-    chrome.storage.sync.remove('user', () => {
-      setUser(null)
-      updateBadge()
-    })
+    setUser(null)
+    clearOpenExams()
+    clearUpcomingExams()
   }
 
   return (
@@ -109,13 +135,17 @@ const Popup = (): JSX.Element => {
         </span>
       </div>
       {user ? (
-        <div className="p-2 space-y-3">
+        <div className="px-4 py-2 space-y-3">
           <EventList header="Exams for Today">
-            {renderExamsEvents(openExams, false)}
+            {renderExamsEvents(openExams, areOpenExamsLoading, openExamsError)}
           </EventList>
-          <EventList header="Upcoming Exams">
-            {renderExamsEvents(upcomingExams)}
-          </EventList>
+          {upcomingExams.length > 0 || areOpenExamsLoading ?(
+            <EventList header="Upcoming Exams">
+              {renderExamsEvents(upcomingExams, areUpcomingExamsLoading, upcomingExamsError)}
+            </EventList>
+          ) : (
+            ''
+          )}
         </div>
       ) : (
         <>
@@ -132,9 +162,9 @@ const Popup = (): JSX.Element => {
       {user && (
         <div className="p-2 border-t border-gray-700">
           <AppSwitch
-            checked={user.tracking}
+            checked={tracking}
             onChange={handleChange}
-            label={`Tracking ${user.tracking ? 'Enabled' : 'Disabled'}`}
+            label={`Tracking ${tracking ? 'Enabled' : 'Disabled'}`}
           />
         </div>
       )}

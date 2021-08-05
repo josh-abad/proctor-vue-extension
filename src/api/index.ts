@@ -1,47 +1,34 @@
-import { EventResponse, ExamEvent, User } from '@/types'
+import { Exam, User } from '@/types'
 import axios from 'axios'
 
-const API_URL = 'https://api.proctorvue.live'
+let token: string | null = null
 
-interface APIResponse {
-  openExams: ExamEvent[];
-  upcomingExams: ExamEvent[];
+const setToken = (newToken: string) => {
+  token = `bearer ${newToken}`
 }
 
-const fetchExamEvents = async (id: string): Promise<APIResponse> => {
-  try {
-    const { data } = await axios
-      .get<EventResponse[]>(`${API_URL}/users/${id}/upcoming-exams`)
+const API_URL = import.meta.env.MODE === 'development'
+  ? 'http://localhost:3001'
+  : 'https://api.proctorvue.live'
 
-    const mapEvent = (event: EventResponse): ExamEvent => {
-      return {
-        course: event.location,
-        name: event.subject,
-        eventType: event.action === 'opens' ? 'UPCOMING' : 'ACTIVE',
-        date: event.date,
-        url: event.subjectUrl,
-        courseUrl: event.locationUrl
-      }
-    }
-
-    const openExams = data
-      .filter(event => event.action === 'closes')
-      .map(mapEvent)
- 
-    const upcomingExams = data
-      .filter(event => event.action === 'opens')
-      .map(mapEvent)
-
-    return {
-      openExams,
-      upcomingExams
-    }
-  } catch (error) {
-    return {
-      openExams: [],
-      upcomingExams: [],
+async function fetchOpenExams () {
+  const config = {
+    headers: {
+      Authorization: token
     }
   }
+  const response = await axios.get<Exam[]>(`${API_URL}/user/open-exams`, config)
+  return response.data
+}
+
+async function fetchUpcomingExams () {
+  const config = {
+    headers: {
+      Authorization: token
+    }
+  }
+  const response = await axios.get<Exam[]>(`${API_URL}/user/upcoming-exams`, config)
+  return response.data
 }
 
 interface UserCredentials {
@@ -52,7 +39,7 @@ interface UserCredentials {
 const login = async (credentials: UserCredentials): Promise<User> => {
   const { data } = await axios
     .post<Omit<User, 'tracking'>>(`${API_URL}/login`, credentials)
-  return { ...data, tracking: false }
+  return data
 }
 
-export default { fetchExamEvents, login }
+export default { setToken, fetchOpenExams, fetchUpcomingExams, login }

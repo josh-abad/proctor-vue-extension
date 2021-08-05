@@ -7,10 +7,7 @@
     "scripts": ["dist/background.js"],
     "persistent": false
   },
-  "permissions": [
-    "storage",
-    "tabs"
-  ],
+  "permissions": ["storage", "tabs"],
   "browser_action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -26,5 +23,8 @@
     "48": "/images/icon48.png",
     "128": "/images/icon128.png"
   },
-  "options_page": "options.html"
+  "options_page": "options.html",
+  "externally_connectable": {
+    "matches": ["*://localhost/*", "*://*.proctorvue.live/*"]
+  }
 }

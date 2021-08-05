@@ -7,16 +7,14 @@ interface EventListProps {
 
 const EventList = ({ header, children }: EventListProps): JSX.Element => {
   return (
-    <>
-      <header className="flex justify-center w-full">
-        <h2 className="font-semibold tracking-wide text-gray-200 text-md">
-          {header}
-        </h2>
+    <section>
+      <header className="text-xs font-semibold tracking-wide text-gray-200">
+        {header}
       </header>
-      <ul className="flex justify-center w-full">
+      <ul className="mt-2 space-y-2">
         {children}
       </ul>
-    </>
+    </section>
   )
 }
 
