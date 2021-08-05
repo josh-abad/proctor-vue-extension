@@ -37,6 +37,12 @@ chrome.runtime.onConnectExternal.addListener(port => {
         chrome.storage.sync.get(['tracking'], items => {
           port.postMessage({ tracking: items.tracking, sitesVisited: activities })
         })
+      } else if (response === 'on') {
+        chrome.storage.sync.set({ tracking: true })
+        port.postMessage({ tracking: true, sitesVisited: activities })
+      } else if (response === 'off') {
+        chrome.storage.sync.set({ tracking: false })
+        port.postMessage({ tracking: false, sitesVisited: activities })
       }
     })
 
